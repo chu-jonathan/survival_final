@@ -38,7 +38,7 @@ print("full")
 backward_selected_model <- stepAIC(full_cox_model, direction = "backward", trace = 0)
 
 print("backwards")
-#print(summary(backward_selected_model))
+print(summary(backward_selected_model))
 
 null_coxph_model <- coxph(survobj ~ 1, data = dataset)
 forward_selected_model <- stepAIC(null_coxph_model, scope = list(lower = ~1, upper = as.formula(formula_str)),
@@ -81,5 +81,28 @@ for (predictor in int_var_final) {
   print(plot)
 }
 
+#removed age business travel education field jobrole trainingtimeslastyear worklifebalance yearsincurrentrole yearrssincelastpromotion
+#yearswithcurrmanager
+print("reduc")
+cox_model_reduc <- coxph(survobj ~ DistanceFromHome + EnvironmentSatisfaction + Gender + JobInvolvement + 
+                           JobSatisfaction + NumCompaniesWorked + OverTime + RelationshipSatisfaction + StockOptionLevel
+                         + TotalWorkingYears, data = dataset)
+print(summary(cox_model_reduc))
 
+ph_reduc = cox.zph(cox_model_reduc)
+print(ph_reduc)
+plot(ph_reduc)
+
+#martingale linearity check for reduced model
+int_var_reduc <- c("DistanceFromHome", "NumCompaniesWorked", "TotalWorkingYears")
+martingale_resids <- residuals(cox_model_reduc, type = "martingale")
+
+
+martingale_resid_df <- data.frame(MartingaleResiduals = martingale_resids, dataset[, int_var_reduc])
+
+
+for (predictor in int_var_reduc) {
+  plot <- create_martingale_plot(predictor, martingale_resid_df)
+  print(plot)
+}
 
